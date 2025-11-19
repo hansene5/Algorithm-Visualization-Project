@@ -1,0 +1,149 @@
+# Source Tree Analysis
+
+## Project Directory Structure
+
+```
+Algorithm-Visualization-Project/
+├── index.html              # 🚪 Landing page and project introduction
+├── login.html              # 🔐 User authentication interface
+├── algorithm.html          # ⚙️ Main visualization platform (Dashboard + Visualizer Engine)
+├── readme.md               # 📝 Project documentation (outdated structure reference)
+├── LICENSE                 # ⚖️ Project license
+├── .git/                   # 🗂️ Git version control
+├── .gitignore              # 🚫 Git ignore patterns
+└── docs/                   # 📚 BMad Method documentation (generated)
+    ├── bmm-workflow-status.yaml
+    ├── project-scan-report.json
+    └── [generated documentation files]
+```
+
+## Critical Directories and Files
+
+### 🚪 Entry Points
+
+| File | Purpose | Navigation |
+|------|---------|------------|
+| **index.html** | Landing page | Main entry point for new users |
+| **login.html** | Authentication | Login interface before accessing platform |
+| **algorithm.html** | Main Platform | Core visualization engine and dashboard |
+
+### ⚙️ Core Application (algorithm.html)
+
+**Embedded Architecture** - All code embedded in single HTML file:
+
+```
+algorithm.html
+├── <head>
+│   ├── Tailwind CSS Configuration (inline <script>)
+│   ├── Custom Styles (inline <style>)
+│   └── External Dependencies (CDN links)
+├── <body>
+│   ├── Sidebar Navigation (aside)
+│   ├── Main Content Area
+│   │   ├── Header with Search
+│   │   ├── Dashboard View (module grid)
+│   │   └── Visualizer View (canvas + controls + debug panel)
+│   └── Application Logic (inline <script>)
+│       ├── MODULE SYSTEM
+│       │   ├── modules[] array (data structures + algorithms)
+│       │   ├── state management per module
+│       │   └── operation handlers
+│       ├── RENDERING ENGINE
+│       │   ├── renderers{} object
+│       │   ├── Bar renderer (sorting algorithms)
+│       │   ├── Stack/Queue renderers (data structures)
+│       │   └── Graph renderer (BFS visualization)
+│       ├── APP ENGINE
+│       │   ├── app{} object (core controller)
+│       │   ├── Generator-based execution model
+│       │   ├── Play/Pause/Step controls
+│       │   └── Debug panel management
+│       └── ROUTER
+│           ├── router{} object
+│           ├── navigate() - view switching
+│           └── filter() - module filtering
+```
+
+### 📄 Supporting Pages
+
+**index.html** - Landing page structure:
+- Hero section with animated elements
+- Feature showcase
+- Call-to-action navigation to algorithm.html
+
+**login.html** - Authentication interface:
+- Glass-card login form
+- Animated background elements
+- Social login options (placeholder UI)
+
+## File Organization Patterns
+
+### ✅ Current Pattern: **Monolithic HTML**
+- **Pros**: Zero build step, easy deployment, self-contained
+- **Cons**: Difficult to maintain, no code splitting, repeated dependencies
+
+### 🔮 Planned Structure (from readme.md - not implemented):
+```
+├── css/style.css          # (Not present - styles are inline)
+├── js/
+│   ├── main.js            # (Not present - logic is inline)
+│   ├── helper.js          # (Not present)
+│   └── algorithms/
+│       └── bubbleSort.js  # (Not present)
+└── data/codes.js          # (Not present - code embedded in modules[])
+```
+
+**Note**: The README references an outdated folder structure. The actual implementation uses inline code within HTML files.
+
+## Key Implementation Details
+
+### Module System Architecture
+```javascript
+modules = [
+  {
+    id: 'stack',
+    type: 'ds',
+    code: `...C++ code...`,
+    state: { items: [] },
+    handlers: { push, pop },
+    renderType: 'stack'
+  },
+  // ... 5 more modules
+]
+```
+
+### Rendering Pipeline
+```
+User Click → Handler/Generator → State Update → Renderer → Canvas Update → Debug Panel
+```
+
+### Visualization Types
+- **Bar Chart**: Sorting algorithms (Bubble Sort, Quick Sort)
+- **Stack/Queue**: LIFO/FIFO data structure operations
+- **Graph**: Node-based BFS traversal with SVG edges
+
+## Asset Locations
+
+### External Assets (CDN)
+- **Tailwind CSS**: `https://cdn.tailwindcss.com`
+- **Lucide Icons**: `https://unpkg.com/lucide@latest`
+- **Google Fonts**: Inter (UI), JetBrains Mono (code)
+
+### No Local Assets
+- No images, CSS files, or JavaScript files
+- Everything embedded or loaded via CDN
+
+## Integration Points
+
+**None** - This is a standalone static web application with no:
+- Backend API calls
+- Database connections
+- External service integrations
+- WebSocket connections
+
+All data is generated client-side and ephemeral (no persistence).
+
+---
+
+*Generated by BMad Method document-project workflow*
+*Date: 2025-11-19*

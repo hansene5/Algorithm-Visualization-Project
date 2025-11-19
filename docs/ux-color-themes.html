@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoVision - Color Theme Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: {
+              950: '#020617',
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            brand: {
+              cyan: '#06b6d4',
+              purple: '#8b5cf6',
+            },
+            status: {
+              green: '#10b981',
+              yellow: '#fbbf24',
+              red: '#ef4444',
+            },
+            leetcode: {
+              easy: '#00b8a3',
+              medium: '#ffc01e',
+              hard: '#ef4743',
+            },
+            monitor: {
+              info: '#3b82f6',
+              warning: '#f59e0b',
+              success: '#10b981',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #020617;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.4);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+      background: rgba(30, 41, 59, 0.6);
+      border-color: rgba(6, 182, 212, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .color-swatch {
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-end;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.05);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes highlight {
+      0% { background-color: rgba(251, 191, 36, 0.3); }
+      100% { background-color: transparent; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .demo-highlight {
+      animation: highlight 0.3s ease-out;
+    }
+
+    .demo-pulse {
+      animation: pulse 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-dark-950 text-gray-100 p-8">
+
+  <!-- Header -->
+  <div class="max-w-7xl mx-auto mb-12">
+    <div class="glass-panel rounded-2xl p-8">
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-brand-cyan to-brand-purple bg-clip-text text-transparent mb-4">
+        AlgoVision Color Theme Explorer
+      </h1>
+      <p class="text-lg text-gray-300">
+        完整的视觉设计系统 - 暗黑科技风 + Glassmorphism + Cyan/Purple 渐变
+      </p>
+      <p class="text-sm text-gray-400 mt-2">
+        点击色块可复制颜色代码到剪贴板
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto space-y-12">
+
+    <!-- 1. Brand Colors -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">🎨</span>
+        品牌色彩 (Brand Colors)
+      </h2>
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <div class="color-swatch" style="background: #06b6d4;" onclick="copyColor('#06b6d4')">
+            <span class="text-dark-950 font-semibold">#06b6d4</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-brand-cyan font-semibold">Cyan (主色)</p>
+            <p class="text-gray-400">主 CTA、链接、活跃状态</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #8b5cf6;" onclick="copyColor('#8b5cf6')">
+            <span class="text-white font-semibold">#8b5cf6</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-brand-purple font-semibold">Purple (次要色)</p>
+            <p class="text-gray-400">次要强调、渐变搭配</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Status Colors -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">🚦</span>
+        状态色彩 (Status Colors) - 算法可视化语义
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+        <div>
+          <div class="color-swatch" style="background: #10b981;" onclick="copyColor('#10b981')">
+            <span class="text-dark-950 font-semibold">#10b981</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-status-green font-semibold">🟢 Green (完成)</p>
+            <p class="text-gray-400">已排序、访问过的节点</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #fbbf24;" onclick="copyColor('#fbbf24')">
+            <span class="text-dark-950 font-semibold">#fbbf24</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-status-yellow font-semibold">🟡 Yellow (活跃)</p>
+            <p class="text-gray-400">当前元素、正在处理</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #ef4444;" onclick="copyColor('#ef4444')">
+            <span class="text-white font-semibold">#ef4444</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-status-red font-semibold">🔴 Red (比较)</p>
+            <p class="text-gray-400">比较、交换操作</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Background System -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">🌗</span>
+        背景分层系统 (Background Layers)
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+        <div>
+          <div class="color-swatch" style="background: #020617;" onclick="copyColor('#020617')">
+            <span class="text-gray-400 font-semibold">#020617</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="font-semibold text-gray-200">Deepest (最深层)</p>
+            <p class="text-gray-400">Body 背景</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #0f172a;" onclick="copyColor('#0f172a')">
+            <span class="text-gray-400 font-semibold">#0f172a</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="font-semibold text-gray-200">Deep (深层)</p>
+            <p class="text-gray-400">主容器、面板</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #1e293b;" onclick="copyColor('#1e293b')">
+            <span class="text-gray-400 font-semibold">#1e293b</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="font-semibold text-gray-200">Elevated (提升层)</p>
+            <p class="text-gray-400">卡片、悬浮元素</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Text Colors -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">📝</span>
+        文字色彩 (Text Colors)
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+        <div>
+          <div class="color-swatch bg-dark-800" style="background: #1e293b; justify-content: center; align-items: center;" onclick="copyColor('#f1f5f9')">
+            <span style="color: #f1f5f9; font-size: 20px; font-weight: 600;">主要文字 Aa</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="font-semibold text-gray-100">#f1f5f9 (Primary)</p>
+            <p class="text-gray-400">标题、正文 - 对比度 7:1</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch bg-dark-800" style="background: #1e293b; justify-content: center; align-items: center;" onclick="copyColor('#94a3b8')">
+            <span style="color: #94a3b8; font-size: 20px; font-weight: 600;">次要文字 Aa</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="font-semibold text-gray-100">#94a3b8 (Secondary)</p>
+            <p class="text-gray-400">说明、辅助 - 对比度 4.5:1</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch bg-dark-800" style="background: #1e293b; justify-content: center; align-items: center;" onclick="copyColor('#64748b')">
+            <span style="color: #64748b; font-size: 20px; font-weight: 600;">弱化文字 Aa</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="font-semibold text-gray-100">#64748b (Muted)</p>
+            <p class="text-gray-400">占位符、禁用状态</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. LeetCode Colors -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">🏆</span>
+        LeetCode 集成色彩 (LeetCode Colors)
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+        <div>
+          <div class="color-swatch" style="background: #00b8a3;" onclick="copyColor('#00b8a3')">
+            <span class="text-dark-950 font-semibold">#00b8a3</span>
+          </div>
+          <div class="mt-3">
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                 style="background: rgba(0, 184, 163, 0.2); color: #00b8a3;">
+              Easy
+            </div>
+            <p class="text-gray-400 text-sm mt-2">简单题目徽章</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #ffc01e;" onclick="copyColor('#ffc01e')">
+            <span class="text-dark-950 font-semibold">#ffc01e</span>
+          </div>
+          <div class="mt-3">
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                 style="background: rgba(255, 192, 30, 0.2); color: #ffc01e;">
+              Medium
+            </div>
+            <p class="text-gray-400 text-sm mt-2">中等题目徽章</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #ef4743;" onclick="copyColor('#ef4743')">
+            <span class="text-white font-semibold">#ef4743</span>
+          </div>
+          <div class="mt-3">
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                 style="background: rgba(239, 71, 67, 0.2); color: #ef4743;">
+              Hard
+            </div>
+            <p class="text-gray-400 text-sm mt-2">困难题目徽章</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Monitor Colors -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">📊</span>
+        监控面板色彩 (Monitor Colors)
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+        <div>
+          <div class="color-swatch" style="background: #3b82f6;" onclick="copyColor('#3b82f6')">
+            <span class="text-white font-semibold">#3b82f6</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-monitor-info font-semibold">Info (信息)</p>
+            <p class="text-gray-400">复杂度、统计信息</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #f59e0b;" onclick="copyColor('#f59e0b')">
+            <span class="text-dark-950 font-semibold">#f59e0b</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-monitor-warning font-semibold">Warning (警告)</p>
+            <p class="text-gray-400">性能瓶颈提示</p>
+          </div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background: #10b981;" onclick="copyColor('#10b981')">
+            <span class="text-dark-950 font-semibold">#10b981</span>
+          </div>
+          <div class="mt-3 text-sm">
+            <p class="text-monitor-success font-semibold">Success (成功)</p>
+            <p class="text-gray-400">优化建议</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Glassmorphism Demo -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">✨</span>
+        Glassmorphism 效果演示
+      </h2>
+
+      <!-- Background Pattern -->
+      <div class="relative rounded-2xl overflow-hidden p-8" style="background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);">
+        <div class="grid grid-cols-2 gap-6">
+
+          <!-- Glass Panel -->
+          <div class="glass-panel rounded-xl p-6">
+            <h3 class="text-xl font-semibold text-gray-100 mb-3">Glass Panel</h3>
+            <p class="text-gray-300 text-sm mb-4">
+              用于侧边栏、变量面板、监控面板等大容器
+            </p>
+            <div class="text-xs font-mono text-gray-400 space-y-1">
+              <div>background: rgba(15, 23, 42, 0.6)</div>
+              <div>backdrop-filter: blur(12px)</div>
+              <div>border: 1px solid rgba(148, 163, 184, 0.1)</div>
+            </div>
+          </div>
+
+          <!-- Glass Card -->
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-xl font-semibold text-gray-100 mb-3">Glass Card</h3>
+            <p class="text-gray-300 text-sm mb-4">
+              用于算法卡片、LeetCode 题目卡、统计卡片
+            </p>
+            <div class="text-xs font-mono text-gray-400 space-y-1">
+              <div>background: rgba(30, 41, 59, 0.4)</div>
+              <div>backdrop-filter: blur(8px)</div>
+              <div>hover: transform translateY(-2px)</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. UI Components Demo -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">🎯</span>
+        UI 组件实例 (Component Examples)
+      </h2>
+
+      <div class="grid grid-cols-2 gap-6">
+
+        <!-- Algorithm Card -->
+        <div class="glass-card rounded-xl p-6 cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-100 mb-1">冒泡排序</h3>
+              <p class="text-sm text-gray-400">Bubble Sort</p>
+            </div>
+            <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-leetcode-easy/20 text-leetcode-easy">
+              Easy
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-sm text-gray-400">
+            <span class="font-mono">O(n²)</span>
+            <span>•</span>
+            <span class="text-brand-cyan font-mono">#剑指Offer 45</span>
+          </div>
+        </div>
+
+        <!-- Variable Monitor Panel -->
+        <div class="glass-panel rounded-xl p-6">
+          <h3 class="text-base font-semibold text-brand-cyan mb-4">变量监控</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-400">i (当前索引)</span>
+              <span class="font-mono text-base text-status-yellow font-semibold">3</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-400">j (比较索引)</span>
+              <span class="font-mono text-base text-gray-200">4</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-400">swapped</span>
+              <span class="font-mono text-base text-status-green font-semibold">true</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="glass-panel rounded-xl p-6">
+          <h3 class="text-base font-semibold text-gray-100 mb-4">执行控制</h3>
+          <div class="flex gap-3">
+            <button class="flex-1 bg-brand-cyan hover:bg-brand-cyan/80 text-dark-950 font-semibold py-2 px-4 rounded-lg transition-all">
+              ▶️ 播放
+            </button>
+            <button class="flex-1 bg-dark-700 hover:bg-dark-600 text-gray-200 font-semibold py-2 px-4 rounded-lg transition-all">
+              ⏸️ 暂停
+            </button>
+            <button class="flex-1 bg-dark-700 hover:bg-dark-600 text-gray-200 font-semibold py-2 px-4 rounded-lg transition-all">
+              ⏭️ 单步
+            </button>
+          </div>
+        </div>
+
+        <!-- Complexity Stats -->
+        <div class="glass-card rounded-xl p-6">
+          <h3 class="text-base font-semibold text-gray-100 mb-4">复杂度统计</h3>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-400">时间复杂度</span>
+                <span class="font-mono text-monitor-info">O(n²)</span>
+              </div>
+              <div class="w-full bg-dark-800 rounded-full h-2">
+                <div class="bg-monitor-info rounded-full h-2" style="width: 75%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-400">空间复杂度</span>
+                <span class="font-mono text-monitor-success">O(1)</span>
+              </div>
+              <div class="w-full bg-dark-800 rounded-full h-2">
+                <div class="bg-monitor-success rounded-full h-2" style="width: 20%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 9. Animation Demo -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-100 mb-6 flex items-center gap-3">
+        <span class="text-3xl">⚡</span>
+        动画效果演示 (Animation Examples)
+      </h2>
+
+      <div class="glass-panel rounded-xl p-8">
+        <div class="grid grid-cols-3 gap-6 text-center">
+
+          <div>
+            <div class="glass-card rounded-lg p-6 mb-3" id="highlightDemo">
+              <div class="text-3xl mb-2">🟡</div>
+              <div class="font-mono text-xl text-status-yellow">42</div>
+            </div>
+            <button onclick="triggerHighlight()" class="text-sm text-brand-cyan hover:underline">
+              触发高亮动画
+            </button>
+            <p class="text-xs text-gray-500 mt-1">200ms 淡出</p>
+          </div>
+
+          <div>
+            <div class="glass-card rounded-lg p-6 mb-3" id="pulseDemo">
+              <div class="text-3xl mb-2">🟢</div>
+              <div class="font-mono text-xl text-status-green">完成</div>
+            </div>
+            <button onclick="triggerPulse()" class="text-sm text-brand-cyan hover:underline">
+              触发脉冲动画
+            </button>
+            <p class="text-xs text-gray-500 mt-1">500ms 脉冲</p>
+          </div>
+
+          <div>
+            <div class="glass-card rounded-lg p-6 mb-3 transition-all" id="hoverDemo">
+              <div class="text-3xl mb-2">🔵</div>
+              <div class="font-mono text-xl text-brand-cyan">悬停</div>
+            </div>
+            <p class="text-sm text-gray-400">鼠标悬停查看</p>
+            <p class="text-xs text-gray-500 mt-1">150ms 过渡</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glass-panel rounded-xl p-6 text-center text-sm text-gray-400">
+      <p>AlgoVision UX Design Specification - Color Theme Explorer</p>
+      <p class="mt-2">Generated by BMad Method - Create UX Design Workflow</p>
+      <p class="mt-1 text-xs text-gray-500">2025-11-19</p>
+    </footer>
+
+  </div>
+
+  <script>
+    function copyColor(color) {
+      navigator.clipboard.writeText(color).then(() => {
+        // Create temporary notification
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 glass-card rounded-lg px-6 py-3 text-sm font-semibold text-brand-cyan z-50';
+        notification.textContent = `已复制: ${color}`;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          notification.style.transition = 'opacity 0.3s ease';
+          setTimeout(() => document.body.removeChild(notification), 300);
+        }, 2000);
+      });
+    }
+
+    function triggerHighlight() {
+      const demo = document.getElementById('highlightDemo');
+      demo.classList.remove('demo-highlight');
+      void demo.offsetWidth; // Force reflow
+      demo.classList.add('demo-highlight');
+      setTimeout(() => demo.classList.remove('demo-highlight'), 300);
+    }
+
+    function triggerPulse() {
+      const demo = document.getElementById('pulseDemo');
+      demo.classList.remove('demo-pulse');
+      void demo.offsetWidth;
+      demo.classList.add('demo-pulse');
+      setTimeout(() => demo.classList.remove('demo-pulse'), 500);
+    }
+  </script>
+
+</body>
+</html>
