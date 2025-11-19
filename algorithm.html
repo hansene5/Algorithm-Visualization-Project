@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoVision | Master Algorithms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            600: '#475569',
+                        },
+                        brand: {
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            green: '#10b981',
+                            yellow: '#fbbf24',
+                            red: '#ef4444'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-in-right': 'slideInRight 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        slideInRight: { '0%': { transform: 'translateX(20px)', opacity: 0 }, '100%': { transform: 'translateX(0)', opacity: 1 } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base & Utilities */
+        body { background-color: #020617; color: #e2e8f0; overflow: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease; }
+        .glass-card:hover { background: rgba(30, 41, 59, 0.7); border-color: rgba(6, 182, 212, 0.3); transform: translateY(-2px); }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Visualization Specifics */
+        .bar { transition: height 0.2s ease, background-color 0.2s ease; border-radius: 4px 4px 0 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-size: 10px; font-weight: bold; color: rgba(0,0,0,0.7); overflow: hidden; position: relative; }
+        .bar:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; border: 1px solid #334155; z-index: 20; margin-bottom: 4px; pointer-events: none; }
+
+        .node { width: 44px; height: 44px; border-radius: 50%; background: #1e293b; border: 2px solid #06b6d4; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono'; font-weight: bold; z-index: 10; position: relative; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); transition: all 0.3s ease; cursor: help; }
+        .node:hover { transform: scale(1.1); border-color: white; }
+        .node.active { background: #fbbf24; border-color: #f59e0b; color: black; transform: scale(1.15); }
+        .node.visited { background: #10b981; border-color: #059669; color: black; }
+        .node.processing { border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+
+        .sq-container { border: 2px dashed rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); border-radius: 8px; position: relative; }
+        .sq-item { background: #334155; border: 1px solid #06b6d4; color: white; font-family: monospace; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.3s ease; }
+        .sq-item.entering { animation: slideInRight 0.4s ease; }
+
+        .line-highlight { background-color: rgba(6, 182, 212, 0.15); border-left: 3px solid #06b6d4; color: #fff; }
+
+        /* Debug Variables Table */
+        .var-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+        .var-name { color: #94a3b8; }
+        .var-val { color: #fbbf24; font-weight: bold; }
+
+        /* Difficulty Badges */
+        .badge-easy { color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-medium { color: #fbbf24; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); }
+        .badge-hard { color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+    </style>
+</head>
+<body class="flex h-screen w-screen overflow-hidden">
+
+<!-- === SIDEBAR === -->
+<aside class="w-64 bg-dark-950 border-r border-dark-800 flex flex-col shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-dark-800 cursor-pointer" onclick="router.navigate('dashboard')">
+        <i data-lucide="cpu" class="text-brand-cyan w-6 h-6 mr-3"></i>
+        <span class="font-bold text-lg tracking-tight text-white">Algo<span class="text-brand-cyan">Vision</span></span>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+        <div class="px-3 mb-2 text-xs font-semibold text-dark-600 uppercase tracking-wider">Platform</div>
+        <button onclick="router.navigate('dashboard')" class="nav-item w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-brand-cyan/10 text-brand-cyan">
+            <i data-lucide="layout-grid" class="w-4 h-4 mr-3"></i> Dashboard
+        </button>
+
+        <div class="px-3 mt-8 mb-2 text-xs font-semibold text-dark-600 uppercase tracking-wider">Library</div>
+        <button onclick="router.filter('ds')" class="nav-item w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-dark-800 hover:text-white transition-colors">
+            <i data-lucide="database" class="w-4 h-4 mr-3"></i> Data Structures
+        </button>
+        <button onclick="router.filter('algo')" class="nav-item w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-dark-800 hover:text-white transition-colors">
+            <i data-lucide="zap" class="w-4 h-4 mr-3"></i> Algorithms
+        </button>
+        <button onclick="router.filter('leetcode')" class="nav-item w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-dark-800 hover:text-white transition-colors">
+            <i data-lucide="code-2" class="w-4 h-4 mr-3"></i> LeetCode Map
+        </button>
+    </nav>
+
+    <div class="p-4 border-t border-dark-800 text-xs text-dark-600 text-center">
+        v2.2.1 &bull; Engine Stable
+    </div>
+</aside>
+
+<!-- === MAIN CONTENT === -->
+<main class="flex-1 flex flex-col relative bg-dark-900 overflow-hidden">
+
+    <!-- Header -->
+    <header class="h-16 border-b border-dark-800 flex items-center justify-between px-8 bg-dark-900/80 backdrop-blur z-10 shrink-0">
+        <div class="flex items-center text-sm text-slate-400">
+            <span id="breadcrumb" class="cursor-pointer hover:text-white" onclick="router.navigate('dashboard')">Dashboard</span>
+        </div>
+        <div class="relative w-96">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-600"></i>
+            <input type="text" id="global-search" placeholder="Search algorithms..."
+                   class="w-full bg-dark-950 border border-dark-700 rounded-full pl-10 pr-4 py-1.5 text-sm text-white focus:outline-none focus:border-brand-cyan placeholder-dark-600 transition-colors">
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="https://github.com" target="_blank" class="text-dark-600 hover:text-white"><i data-lucide="github" class="w-5 h-5"></i></a>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <div id="content-area" class="flex-1 overflow-y-auto p-8 scroll-smooth">
+
+        <!-- VIEW: DASHBOARD -->
+        <div id="view-dashboard" class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="glass-panel p-6 rounded-xl border-l-4 border-brand-cyan">
+                    <h3 class="text-slate-400 text-sm font-medium">Data Structures</h3>
+                    <p class="text-3xl font-bold text-white mt-1">3 <span class="text-sm text-dark-600 font-normal">Ready</span></p>
+                </div>
+                <div class="glass-panel p-6 rounded-xl border-l-4 border-brand-purple">
+                    <h3 class="text-slate-400 text-sm font-medium">Algorithms</h3>
+                    <p class="text-3xl font-bold text-white mt-1">3 <span class="text-sm text-dark-600 font-normal">Ready</span></p>
+                </div>
+                <div class="glass-panel p-6 rounded-xl border-l-4 border-brand-green">
+                    <h3 class="text-slate-400 text-sm font-medium">Engine Status</h3>
+                    <p class="text-3xl font-bold text-white mt-1">Online</p>
+                </div>
+            </div>
+
+            <div class="mb-6 flex items-center justify-between">
+                <h2 id="section-title" class="text-xl font-bold text-white">Available Modules</h2>
+            </div>
+
+            <div id="module-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+
+        <!-- VIEW: VISUALIZER -->
+        <div id="view-viz" class="hidden h-full flex flex-col">
+            <div class="flex items-center justify-between mb-4 shrink-0">
+                <div>
+                    <h2 id="viz-title" class="text-2xl font-bold text-white">Title</h2>
+                    <p id="viz-desc" class="text-slate-400 text-sm">Description</p>
+                </div>
+                <!-- Controls injected here -->
+                <div class="flex gap-2 items-center" id="viz-controls-mount"></div>
+            </div>
+
+            <div class="flex-1 flex border border-dark-700 rounded-xl overflow-hidden bg-dark-950 min-h-0">
+                <!-- Left Sidebar: Debugger & Settings -->
+                <aside class="w-72 bg-dark-900 border-r border-dark-800 flex flex-col shrink-0">
+                    <div class="p-3 border-b border-dark-800 font-semibold text-xs text-slate-500 uppercase flex gap-2 items-center">
+                        <i data-lucide="bug" class="w-4 h-4 text-brand-yellow"></i> Variables
+                    </div>
+                    <div id="debug-vars" class="p-4 space-y-1 flex-1 overflow-y-auto font-mono text-xs bg-dark-950/50">
+                        <span class="text-dark-600 italic">Waiting for execution...</span>
+                    </div>
+
+                    <div class="p-4 border-t border-dark-800 bg-dark-800/30">
+                        <div id="viz-settings-mount" class="space-y-4">
+                            <!-- Settings injected here -->
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/5">
+                            <div id="viz-status" class="text-xs text-slate-400 font-mono truncate">Ready</div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Center: Canvas -->
+                <section class="flex-1 flex flex-col relative min-w-0">
+                    <div id="viz-canvas" class="flex-1 flex items-center justify-center p-8 overflow-hidden relative">
+                        <!-- Visuals injected here -->
+                    </div>
+
+                    <!-- Code Panel -->
+                    <div class="h-48 border-t border-dark-800 bg-dark-900 flex flex-col shrink-0">
+                        <div class="px-4 py-1 bg-dark-950 border-b border-dark-800 text-xs font-mono text-slate-500 flex justify-between">
+                            <span>main.cpp</span>
+                            <span id="viz-complexity"></span>
+                        </div>
+                        <pre id="code-view" class="flex-1 p-4 font-mono text-xs text-slate-300 overflow-auto leading-relaxed"></pre>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    /* ================================================================
+       MODULE: LOGIC ENGINE
+       ================================================================ */
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const modules = [
+        // --- DATA STRUCTURES ---
+        {
+            id: 'stack', type: 'ds', title: 'Stack', cat: 'ds',
+            tags: ['Linear', 'LIFO'], complexity: 'O(1)', difficulty: 'Easy',
+            desc: 'LIFO (Last-In, First-Out) container.',
+            icon: 'layers',
+            // COMPLETE, RUNNABLE CODE
+            code: `#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// Stack Class Definition
+template <typename T>
+class Stack {
+private:
+    vector<T> elements;
+
+public:
+    // Push element onto the stack
+    void push(T val) {
+        elements.push_back(val);
+        cout << "Pushed: " << val << endl;
+    }
+
+    // Remove top element
+    void pop() {
+        if (!elements.empty()) {
+            cout << "Popped: " << elements.back() << endl;
+            elements.pop_back();
+        } else {
+            cout << "Stack Underflow" << endl;
+        }
+    }
+
+    // Check if empty
+    bool empty() {
+        return elements.empty();
+    }
+
+    // Get top element
+    T top() {
+        if(!elements.empty()) return elements.back();
+        throw runtime_error("Empty Stack");
+    }
+};
+
+int main() {
+    Stack<int> s;
+    s.push(10);
+    s.push(20);
+    s.pop();
+    return 0;
+}`,
+            state: { items: [], limit: 8 },
+            handlers: {
+                push: async (ctx) => {
+                    if(ctx.state.items.length >= ctx.state.limit) return alert("Stack Overflow!");
+                    const val = Math.floor(Math.random() * 99) + 1;
+                    ctx.log(`Pushing ${val}...`);
+                    ctx.updateLocals({ 'val': val, 'size': ctx.state.items.length, 'limit': ctx.state.limit });
+                    ctx.state.items.push(val);
+                    ctx.render({ highlightIdx: ctx.state.items.length - 1, action: 'push' });
+                    await sleep(1000);
+                    ctx.render();
+                    ctx.updateLocals({ 'pushed': val, 'new_size': ctx.state.items.length, 'status': 'Idle' });
+                },
+                pop: async (ctx) => {
+                    if(ctx.state.items.length === 0) return alert("Stack Underflow!");
+                    ctx.log("Popping top element...");
+                    const topVal = ctx.state.items[ctx.state.items.length - 1];
+                    ctx.updateLocals({ 'top_val': topVal, 'status': 'Popping' });
+                    ctx.render({ highlightIdx: ctx.state.items.length - 1, action: 'pop-highlight' });
+                    await sleep(1000);
+                    ctx.state.items.pop();
+                    ctx.render();
+                    ctx.updateLocals({ 'popped': topVal, 'new_size': ctx.state.items.length, 'status': 'Idle' });
+                }
+            },
+            renderType: 'stack',
+            ops: [
+                { id: 'push', label: 'Push(Random)' },
+                { id: 'pop', label: 'Pop()' }
+            ]
+        },
+        {
+            id: 'queue', type: 'ds', title: 'Queue', cat: 'ds',
+            tags: ['Linear', 'FIFO'], complexity: 'O(1)', difficulty: 'Easy',
+            desc: 'FIFO (First-In, First-Out) container.',
+            icon: 'coffee',
+            // COMPLETE, RUNNABLE CODE
+            code: `#include <iostream>
+#include <list>
+
+using namespace std;
+
+// Queue Class Definition
+template <typename T>
+class Queue {
+private:
+    list<T> elements;
+
+public:
+    // Add element to the rear
+    void enqueue(T val) {
+        elements.push_back(val);
+        cout << "Enqueued: " << val << endl;
+    }
+
+    // Remove element from the front
+    void dequeue() {
+        if (!elements.empty()) {
+            cout << "Dequeued: " << elements.front() << endl;
+            elements.pop_front();
+        } else {
+            cout << "Queue Underflow" << endl;
+        }
+    }
+
+    // Get front element
+    T front() {
+        if(!elements.empty()) return elements.front();
+        throw runtime_error("Empty Queue");
+    }
+
+    bool empty() { return elements.empty(); }
+};
+
+int main() {
+    Queue<int> q;
+    q.enqueue(10);
+    q.enqueue(20);
+    q.dequeue();
+    return 0;
+}`,
+            state: { items: [], limit: 8 },
+            handlers: {
+                enqueue: async (ctx) => {
+                    if(ctx.state.items.length >= ctx.state.limit) return alert("Queue Full!");
+                    const val = Math.floor(Math.random() * 99) + 1;
+                    ctx.log(`Enqueuing ${val}...`);
+                    ctx.updateLocals({ 'val': val, 'front': ctx.state.items[0] || 'null', 'status': 'Enqueuing' });
+                    ctx.state.items.push(val);
+                    ctx.render({ highlightIdx: ctx.state.items.length - 1, action: 'enqueue' });
+                    await sleep(1000);
+                    ctx.render();
+                    ctx.updateLocals({ 'enqueued': val, 'new_rear': val, 'size': ctx.state.items.length });
+                },
+                dequeue: async (ctx) => {
+                    if(ctx.state.items.length === 0) return alert("Queue Empty!");
+                    ctx.log("Dequeuing front element...");
+                    const frontVal = ctx.state.items[0];
+                    ctx.updateLocals({ 'front_val': frontVal, 'status': 'Dequeuing' });
+                    ctx.render({ highlightIdx: 0, action: 'dequeue-highlight' });
+                    await sleep(1000);
+                    ctx.state.items.shift();
+                    ctx.render();
+                    ctx.updateLocals({ 'dequeued': frontVal, 'new_size': ctx.state.items.length, 'status': 'Idle' });
+                }
+            },
+            renderType: 'queue',
+            ops: [
+                { id: 'enqueue', label: 'Enqueue' },
+                { id: 'dequeue', label: 'Dequeue' }
+            ]
+        },
+        {
+            // FIXED: Type is 'algo' to trigger Generator engine, even though it's a graph
+            id: 'graph', type: 'algo', title: 'Graph BFS', cat: 'algo',
+            tags: ['Graph', 'Traversal'], complexity: 'O(V+E)', difficulty: 'Medium',
+            desc: 'Breadth-First Search traversal.',
+            icon: 'share-2',
+            renderType: 'graph',
+            // COMPLETE, RUNNABLE CODE
+            code: `#include <iostream>
+#include <vector>
+#include <queue>
+#include <set>
+
+using namespace std;
+
+// Adjacency List
+vector<vector<int>> adj;
+vector<bool> visited;
+
+void addEdge(int u, int v) {
+    adj[u].push_back(v);
+    // adj[v].push_back(u); // Uncomment for undirected
+}
+
+void BFS(int start) {
+    queue<int> q;
+    q.push(start);
+    visited[start] = true;
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        cout << "Visiting: " << u << endl;
+
+        // Process neighbors
+        for (int v : adj[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                q.push(v);
+            }
+        }
+    }
+}
+
+int main() {
+    int nodes = 7;
+    adj.resize(nodes);
+    visited.resize(nodes, false);
+
+    addEdge(0, 1); addEdge(0, 2);
+    addEdge(1, 3); addEdge(1, 4);
+
+    cout << "Starting BFS from 0:" << endl;
+    BFS(0);
+    return 0;
+}`,
+            factory: () => ({
+                nodes: [
+                    {id:0, x:300, y:50}, {id:1, x:150, y:150}, {id:2, x:450, y:150},
+                    {id:3, x:100, y:250}, {id:4, x:200, y:250}, {id:5, x:400, y:250}, {id:6, x:500, y:250}
+                ],
+                edges: [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[4,5]],
+                adj: [[1,2], [0,3,4], [0,5,6], [1], [1,5], [2,4], [2]]
+            }),
+            generator: function*(data) {
+                const { adj } = data;
+                let q = [0];
+                let visited = new Set([0]);
+
+                yield { locals: { 'u': 'start', 'queue': JSON.stringify(q), 'status': 'Init' }, active: 0, visited: [...visited], queue: [...q] };
+
+                while(q.length > 0) {
+                    let u = q.shift();
+                    yield { locals: { 'u': u, 'queue': JSON.stringify(q), 'status': 'Processing Node' }, active: u, visited: [...visited], queue: [...q] };
+
+                    if (adj[u]) { // Safety check
+                        for(let v of adj[u]) {
+                            if(!visited.has(v)) {
+                                visited.add(v);
+                                q.push(v);
+                                yield { locals: { 'u': u, 'v': v, 'queue': JSON.stringify(q), 'status': 'Neighbor Found' }, active: u, visited: [...visited], queue: [...q] };
+                            }
+                        }
+                    }
+                }
+                yield { locals: { 'status': 'BFS Completed', 'total_visited': visited.size }, visited: [...visited] };
+            }
+        },
+
+        // --- SORTING ALGORITHMS ---
+        {
+            id: 'bubble-sort', type: 'algo', title: 'Bubble Sort', cat: 'algo',
+            tags: ['Sorting', 'Simple'], complexity: 'O(n²)', difficulty: 'Easy',
+            desc: 'Repeatedly swaps adjacent elements.',
+            icon: 'arrow-up-down',
+            renderType: 'bar',
+            // COMPLETE, RUNNABLE CODE
+            code: `#include <iostream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+void bubbleSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        // Last i elements are already in place
+        for (int j = 0; j < n - i - 1; j++) {
+            // Swap if the element found is greater
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+int main() {
+    vector<int> data = {64, 34, 25, 12, 22, 11, 90};
+    bubbleSort(data);
+
+    cout << "Sorted array: ";
+    for(int x : data) cout << x << " ";
+    return 0;
+}`,
+            factory: (n) => Array.from({length: n}, () => Math.floor(Math.random() * 50) + 5),
+            generator: function*(arr) {
+                let n = arr.length;
+                for (let i = 0; i < n - 1; i++) {
+                    yield { line: 11, locals: { i, n, 'status': 'Outer Loop' } };
+                    for (let j = 0; j < n - i - 1; j++) {
+                        if (j+1 < n) {
+                            yield { type: 'compare', indices: [j, j+1], line: 14, locals: { i, j, 'arr[j]': arr[j], 'arr[j+1]': arr[j+1] } };
+                            if (arr[j] > arr[j + 1]) {
+                                let temp = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = temp;
+                                yield { type: 'swap', indices: [j, j+1], values: [...arr], line: 15, locals: { i, j, 'swap': 'Performed' } };
+                            }
+                        }
+                    }
+                    yield { type: 'sorted', index: n - i - 1, locals: { 'sorted_idx': n-i-1 } };
+                }
+                yield { type: 'sorted', index: 0, locals: { 'status': 'Sort Completed' } };
+            }
+        },
+        {
+            id: 'quick-sort', type: 'algo', title: 'Quick Sort', cat: 'algo',
+            tags: ['Sorting', 'D&C'], complexity: 'O(n log n)', difficulty: 'Medium',
+            desc: 'Divide and conquer strategy.',
+            icon: 'zap',
+            renderType: 'bar',
+            // COMPLETE, RUNNABLE CODE
+            code: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int partition(vector<int>& arr, int low, int high) {
+    int pivot = arr[high];
+    int i = (low - 1);
+
+    for (int j = low; j <= high - 1; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + 1], arr[high]);
+    return (i + 1);
+}
+
+void quickSort(vector<int>& arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+int main() {
+    vector<int> data = {10, 7, 8, 9, 1, 5};
+    quickSort(data, 0, data.size() - 1);
+
+    cout << "Sorted array: ";
+    for(int x : data) cout << x << " ";
+    return 0;
+}`,
+            factory: (n) => Array.from({length: n}, () => Math.floor(Math.random() * 50) + 5),
+            generator: function*(arr) {
+                function* quickSort(arr, low, high) {
+                    if (low < high && high < arr.length) {
+                        let pivot = arr[high];
+                        let i = low - 1;
+                        yield { line: 8, locals: { low, high, pivot, i } };
+                        for (let j = low; j < high; j++) {
+                            yield { type: 'compare', indices: [j, high], line: 12, locals: { low, high, pivot, i, j, 'val': arr[j] } };
+                            if (arr[j] < pivot) {
+                                i++;
+                                [arr[i], arr[j]] = [arr[j], arr[i]];
+                                yield { type: 'swap', indices: [i, j], values: [...arr], line: 14, locals: { 'swap': 'Partition Swap' } };
+                            }
+                        }
+                        [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+                        yield { type: 'swap', indices: [i + 1, high], values: [...arr], line: 17, locals: { 'pivot_final': i+1 } };
+                        let pi = i + 1;
+                        yield* quickSort(arr, low, pi - 1);
+                        yield* quickSort(arr, pi + 1, high);
+                    } else if (low === high && low >= 0 && low < arr.length) {
+                        yield { type: 'sorted', index: low, locals: { 'sorted_single': low } };
+                    }
+                }
+                yield* quickSort(arr, 0, arr.length - 1);
+                for(let i=0; i<arr.length; i++) yield { type: 'sorted', index: i, locals: { 'status': 'All Sorted' } };
+            }
+        }
+    ];
+
+    /* ================================================================
+       MODULE: RENDERERS
+       ================================================================ */
+    const renderers = {
+        stack: (el, state, meta) => {
+            el.innerHTML = '';
+            const container = document.createElement('div');
+            container.className = 'sq-container flex flex-col-reverse gap-2 w-40 h-[300px] p-4 bg-dark-800/50 border-2 border-dashed border-white/20 overflow-hidden relative items-center';
+
+            if (state.items) {
+                state.items.forEach((val, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'sq-item w-full h-10 rounded shrink-0';
+                    item.innerText = val;
+                    if(meta.highlightIdx === idx) {
+                        if(meta.action === 'push') item.classList.add('entering', 'border-brand-green');
+                        if(meta.action === 'pop-highlight') { item.style.background = '#ef4444'; item.style.borderColor = 'red'; }
+                    }
+                    container.appendChild(item);
+                });
+            }
+            el.appendChild(container);
+        },
+        queue: (el, state, meta) => {
+            el.innerHTML = '';
+            const container = document.createElement('div');
+            container.className = 'sq-container flex flex-row gap-2 w-full h-32 p-4 bg-dark-800/50 border-2 border-dashed border-white/20 overflow-hidden items-center';
+            if (state.items) {
+                state.items.forEach((val, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'sq-item w-14 h-14 rounded shrink-0 text-lg';
+                    item.innerText = val;
+                    if(meta.highlightIdx === idx) {
+                        if(meta.action === 'enqueue') item.classList.add('entering', 'border-brand-green');
+                        if(meta.action === 'dequeue-highlight') { item.style.background = '#ef4444'; item.style.borderColor = 'red'; }
+                    }
+                    container.appendChild(item);
+                });
+            }
+            el.appendChild(container);
+        },
+        bar: (el, data, meta) => {
+            el.innerHTML = '';
+            const container = document.createElement('div');
+            container.className = 'flex items-end justify-center h-full w-full gap-1';
+
+            if (data && data.length > 0) {
+                const maxVal = Math.max(...data, 50);
+                data.forEach((val, idx) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'bar bg-brand-cyan';
+                    bar.style.height = `${(val / maxVal) * 80}%`;
+                    bar.style.width = `${Math.min(30, 600/data.length)}px`;
+                    bar.innerText = val;
+                    bar.setAttribute('data-tooltip', `Idx: ${idx}, Val: ${val}`);
+
+                    if(meta.indices && meta.indices.includes(idx)) {
+                        bar.style.backgroundColor = meta.type === 'swap' ? '#ef4444' : '#fbbf24';
+                    }
+                    if(meta.type === 'sorted' && idx === meta.index) {
+                        bar.classList.add('sorted-persistent');
+                        bar.style.backgroundColor = '#10b981';
+                    }
+                    container.appendChild(bar);
+                });
+            } else {
+                container.innerHTML = '<span class="text-slate-500">No Data</span>';
+            }
+            el.appendChild(container);
+        },
+        graph: (el, state, meta) => {
+            el.innerHTML = '';
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            svg.style.position = "absolute";
+            svg.style.zIndex = "0";
+            el.appendChild(svg);
+
+            const nodesDiv = document.createElement('div');
+            nodesDiv.className = 'w-full h-full relative pointer-events-none z-10';
+            el.appendChild(nodesDiv);
+
+            if (state.edges) {
+                state.edges.forEach(([u, v]) => {
+                    const n1 = state.nodes.find(n=>n.id===u);
+                    const n2 = state.nodes.find(n=>n.id===v);
+                    if (n1 && n2) {
+                        const line = document.createElementNS(svgNS, "line");
+                        line.setAttribute("x1", n1.x); line.setAttribute("y1", n1.y);
+                        line.setAttribute("x2", n2.x); line.setAttribute("y2", n2.y);
+                        line.setAttribute("stroke", "#475569");
+                        line.setAttribute("stroke-width", "2");
+                        svg.appendChild(line);
+                    }
+                });
+            }
+
+            if (state.nodes) {
+                state.nodes.forEach(n => {
+                    const div = document.createElement('div');
+                    div.className = 'node absolute';
+                    div.style.left = `${n.x}px`; div.style.top = `${n.y}px`;
+                    div.style.transform = 'translate(-50%, -50%)';
+                    div.innerText = n.id;
+
+                    if(meta.active === n.id) div.classList.add('active');
+                    if(meta.visited && meta.visited.includes(n.id)) div.classList.add('visited');
+                    if(meta.queue && meta.queue.includes(n.id)) div.classList.add('processing');
+
+                    nodesDiv.appendChild(div);
+                });
+            }
+        }
+    };
+
+    /* ================================================================
+       MODULE: APP ENGINE
+       ================================================================ */
+    const app = {
+        activeId: null,
+        isPlaying: false,
+        timer: null,
+        speed: 500,
+        generator: null,
+        currentData: null,
+
+        init: () => {
+            app.renderGrid();
+            document.getElementById('global-search').addEventListener('input', (e) => {
+                app.searchTerm = e.target.value.toLowerCase();
+                app.renderGrid();
+            });
+            lucide.createIcons();
+        },
+
+        renderGrid: () => {
+            const grid = document.getElementById('module-grid');
+            grid.innerHTML = '';
+            const filtered = modules.filter(m => app.filterCat ? m.cat === app.filterCat : true);
+
+            filtered.forEach(mod => {
+                const card = document.createElement('div');
+                card.className = 'glass-card p-5 rounded-xl cursor-pointer flex flex-col h-full relative overflow-hidden group';
+                card.onclick = () => app.loadModule(mod.id);
+
+                let badgeClass = 'badge-easy';
+                if(mod.difficulty === 'Medium') badgeClass = 'badge-medium';
+                if(mod.difficulty === 'Hard') badgeClass = 'badge-hard';
+
+                let icon = 'box';
+                if(mod.cat === 'ds') icon = 'database';
+                if(mod.cat === 'algo') icon = 'zap';
+                if(mod.cat === 'leetcode') icon = 'code-2';
+
+                card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="p-2 rounded-lg bg-dark-800 text-slate-300 group-hover:text-brand-cyan transition-colors">
+                                <i data-lucide="${icon}" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase px-2 py-1 rounded ${badgeClass}">${mod.difficulty}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-brand-cyan transition-colors">${mod.title}</h3>
+                        <p class="text-xs text-slate-400 line-clamp-2 mb-4 flex-1">${mod.desc}</p>
+                        <div class="flex flex-wrap gap-1 mt-auto">
+                            ${mod.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-dark-800 text-slate-500 border border-dark-700">${t}</span>`).join('')}
+                        </div>
+                    `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        },
+
+        loadModule: (id) => {
+            app.stop();
+            app.activeId = id;
+            const mod = modules.find(m => m.id === id);
+            if(!mod) return;
+
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-viz').classList.remove('hidden');
+            document.getElementById('breadcrumb').innerHTML = `<span class="cursor-pointer hover:text-white" onclick="router.navigate('dashboard')">Dashboard</span> / ${mod.title}`;
+
+            document.getElementById('viz-title').innerText = mod.title;
+            document.getElementById('viz-desc').innerText = mod.desc;
+            document.getElementById('viz-complexity').innerText = mod.complexity;
+            document.getElementById('code-view').innerHTML = app.formatCode(mod.code);
+            document.getElementById('debug-vars').innerHTML = '<div class="text-xs text-dark-600 italic">Initialized...</div>';
+
+            const controlsMount = document.getElementById('viz-controls-mount');
+            const settingsMount = document.getElementById('viz-settings-mount');
+            controlsMount.innerHTML = '';
+            settingsMount.innerHTML = '';
+
+            settingsMount.innerHTML = `
+                    <div>
+                        <label class="text-xs text-slate-500 block mb-2">Data Size</label>
+                        <input type="range" id="slider-size" class="w-full h-1 bg-dark-700 rounded accent-brand-cyan" min="5" max="20" value="10">
+                    </div>
+                    <button id="btn-randomize" class="w-full py-2 border border-dark-700 rounded text-xs font-medium hover:bg-dark-800 text-slate-300 transition-colors">
+                        <i data-lucide="shuffle" class="w-3 h-3 inline mr-1"></i> Randomize / Reset
+                    </button>
+                `;
+
+            if(mod.type === 'ds' && mod.ops) { // FIXED: Check for ops existance
+                settingsMount.innerHTML += `<div class="pt-4 border-t border-dark-800 space-y-2"><label class="text-xs text-slate-500 block mb-1">Operations</label></div>`;
+                const opsContainer = settingsMount.lastChild;
+
+                mod.ops.forEach(op => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left px-3 py-2 bg-dark-800 hover:bg-dark-700 rounded text-xs text-brand-cyan font-mono border border-dark-700 transition-colors";
+                    btn.innerHTML = `${op.label}`;
+                    btn.onclick = async () => await mod.handlers[op.id](app.getContext());
+                    opsContainer.appendChild(btn);
+                });
+                app.renderDS();
+            }
+            else {
+                controlsMount.innerHTML = `
+                         <div class="flex items-center gap-2 mr-4">
+                            <span class="text-xs text-slate-500">Speed</span>
+                            <input type="range" id="slider-speed" class="w-20 h-1 bg-dark-700 rounded accent-brand-purple" min="50" max="1000" value="500">
+                        </div>
+                        <button id="btn-step" class="p-2 rounded hover:bg-white/10 text-slate-300" title="Step"><i data-lucide="step-forward" class="w-5 h-5"></i></button>
+                        <button id="btn-play" class="bg-brand-purple hover:bg-purple-500 text-white px-4 py-1.5 rounded text-sm font-bold flex items-center gap-2 transition-colors">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i> Run
+                        </button>
+                    `;
+
+                const size = 10;
+                mod.data = mod.factory ? mod.factory(size) : null;
+                app.currentData = mod.data;
+                app.generator = mod.generator([...mod.data]);
+                renderers[mod.renderType](document.getElementById('viz-canvas'), mod.data, {});
+
+                document.getElementById('btn-play').onclick = () => app.isPlaying ? app.stop() : app.play();
+                document.getElementById('btn-step').onclick = () => { app.stop(); app.step(); };
+                document.getElementById('slider-speed').oninput = (e) => app.speed = 1050 - e.target.value;
+            }
+
+            document.getElementById('btn-randomize').onclick = () => {
+                if(mod.type === 'ds') {
+                    mod.state.items = [];
+                    app.renderDS();
+                } else {
+                    const size = document.getElementById('slider-size').value;
+                    mod.data = mod.factory(parseInt(size));
+                    app.currentData = mod.data;
+                    app.generator = mod.generator([...mod.data]);
+                    renderers[mod.renderType](document.getElementById('viz-canvas'), mod.data, {});
+                    document.getElementById('debug-vars').innerHTML = '<div class="text-xs text-dark-600 italic">Reset...</div>';
+                }
+            };
+
+            document.getElementById('slider-size').oninput = (e) => {
+                if(mod.type === 'algo') {
+                    document.getElementById('btn-randomize').click();
+                }
+            };
+
+            lucide.createIcons();
+        },
+
+        getContext: () => ({
+            state: modules.find(m=>m.id===app.activeId).state,
+            render: (meta = {}) => app.renderDS(meta),
+            log: (msg) => document.getElementById('viz-status').innerText = msg,
+            updateLocals: (vars) => app.updateDebugPanel(vars)
+        }),
+
+        renderDS: (meta = {}) => {
+            const mod = modules.find(m=>m.id===app.activeId);
+            const canvas = document.getElementById('viz-canvas');
+            renderers[mod.renderType](canvas, mod.state, meta);
+        },
+
+        step: () => {
+            if(!app.generator) return false;
+            const { value, done } = app.generator.next();
+            if(done) { app.stop(); return false; }
+
+            const mod = modules.find(m=>m.id===app.activeId);
+            if(value.values) app.currentData = value.values;
+
+            renderers[mod.renderType](document.getElementById('viz-canvas'), app.currentData || mod.data, value);
+
+            if(value.locals) app.updateDebugPanel(value.locals);
+
+            return true;
+        },
+
+        play: () => {
+            if(app.isPlaying) return;
+            app.isPlaying = true;
+            document.getElementById('btn-play').innerHTML = `<i data-lucide="pause" class="w-4 h-4 fill-current"></i> Pause`;
+            lucide.createIcons();
+            const loop = () => {
+                if(!app.isPlaying) return;
+                if(app.step()) app.timer = setTimeout(loop, app.speed);
+            };
+            loop();
+        },
+
+        stop: () => {
+            app.isPlaying = false;
+            clearTimeout(app.timer);
+            const btn = document.getElementById('btn-play');
+            if(btn) {
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Run`;
+                lucide.createIcons();
+            }
+        },
+
+        updateDebugPanel: (vars) => {
+            const panel = document.getElementById('debug-vars');
+            panel.innerHTML = '';
+            if(!vars) return;
+            Object.entries(vars).forEach(([key, val]) => {
+                const row = document.createElement('div');
+                row.className = 'var-row';
+                row.innerHTML = `<span class="var-name">${key}:</span> <span class="var-val">${val}</span>`;
+                panel.appendChild(row);
+            });
+        },
+
+        formatCode: (code) => {
+            return code.split('\n').map((line, i) =>
+                `<div class="px-2 border-l-2 border-transparent hover:bg-white/5"><span class="select-none text-slate-600 w-6 inline-block text-right mr-2">${i+1}</span>${line}</div>`
+            ).join('');
+        },
+
+        filterCat: null
+    };
+
+    const router = {
+        navigate: (page) => {
+            if(page === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('view-viz').classList.add('hidden');
+                document.getElementById('breadcrumb').innerText = 'Dashboard';
+                app.stop();
+            }
+        },
+        filter: (cat) => {
+            app.filterCat = cat;
+            app.renderGrid();
+            router.navigate('dashboard');
+        }
+    };
+
+    app.init();
+
+</script>
+</body>
+</html>
